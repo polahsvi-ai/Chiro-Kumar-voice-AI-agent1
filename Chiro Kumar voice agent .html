@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chirokumar AI - Dev Polash</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #4f46e5; --bg: #0a0c10; --card: #161b22; }
+        body { font-family: 'Hind Siliguri', sans-serif; background-color: var(--bg); color: #e6edf3; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .app-card { background: var(--card); width: 100%; max-width: 400px; border-radius: 24px; padding: 30px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); }
+        h1 { font-size: 22px; color: #58a6ff; margin-bottom: 5px; }
+        p { color: #8b949e; font-size: 14px; margin-bottom: 30px; }
+        .mic-section { position: relative; margin-bottom: 40px; }
+        .mic-btn { width: 90px; height: 90px; background: linear-gradient(135deg, #238636, #2ea043); border: none; border-radius: 50%; cursor: pointer; outline: none; transition: 0.3s; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 0 20px rgba(46, 160, 67, 0.4); }
+        .pulse { position: absolute; top: 0; left: 0; right: 0; bottom: 0; border-radius: 50%; border: 4px solid #2ea043; animation: pulse-out 1.5s infinite; display: none; }
+        @keyframes pulse-out { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.8); opacity: 0; } }
+        #status { font-weight: 500; margin-top: 15px; color: #f0f6fc; }
+        #response-text { background: rgba(0,0,0,0.3); border-radius: 15px; padding: 20px; margin-top: 20px; min-height: 80px; max-height: 200px; overflow-y: auto; text-align: left; font-size: 15px; border-left: 4px solid #58a6ff; line-height: 1.5; }
+        .footer { margin-top: 25px; font-size: 12px; color: #8b949e; }
+        .footer span { color: #58a6ff; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="app-card">
+    <h1>চিরকুমার AI এজেন্ট</h1>
+    <p>বিজ্ঞানভিত্তিক ও পজিটিভ ভয়েস সার্ভিস</p>
+    <div class="mic-section">
+        <div class="pulse" id="pulse-bg"></div>
+        <button class="mic-btn" id="start-btn">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="white">
+                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+            </svg>
+        </button>
+        <div id="status">বাটনটি চেপে কথা বলুন</div>
+    </div>
+    <div id="response-text">আপনার প্রশ্নের উত্তর এখানে দেখা যাবে...</div>
+    <div class="footer">Developed by <span>Polash</span></div>
+</div>
+
+<script>
+    // আপনার দেওয়া এপিআই কী এখানে বসিয়ে দেওয়া হয়েছে
+    const API_KEY = "AIzaSyBOKuPwDgp3Qa74rxA24XbQHuHYPiyE8Mw"; 
+    
+    const startBtn = document.getElementById('start-btn');
+    const statusText = document.getElementById('status');
+    const responseBox = document.getElementById('response-text');
+    const pulse = document.getElementById('pulse-bg');
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
+        alert("আপনার ব্রাউজার ভয়েস সাপোর্ট করে না। ক্রোম ব্রাউজার ব্যবহার করুন।");
+    } else {
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'bn-BD';
+
+        startBtn.onclick = () => {
+            recognition.start();
+            statusText.innerText = "আমি শুনছি...";
+            pulse.style.display = "block";
+        };
+
+        recognition.onresult = async (event) => {
+            pulse.style.display = "none";
+            const transcript = event.results[0][0].transcript;
+            statusText.innerText = "বিশ্লেষণ করছি...";
+            fetchGeminiResponse(transcript);
+        };
+
+        recognition.onerror = () => {
+            pulse.style.display = "none";
+            statusText.innerText = "বুঝতে পারিনি, আবার বলুন";
+        };
+    }
+
+    async function fetchGeminiResponse(prompt) {
+        const systemInstruction = "আপনি চিরকুমার সংগঠনের একজন বৈজ্ঞানিক উপদেষ্টা। আপনার কাজ হলো চিরকুমার থাকার সুবিধাগুলো পজিটিভভাবে এবং বিজ্ঞান (যেমন: মনোবিজ্ঞান, স্বাস্থ্যবিজ্ঞান, বা ক্যারিয়ার ফোকাস) দিয়ে ব্যাখ্যা করা। কোনো জোকস বা ফানি উত্তর দেবেন না। উত্তর বাংলায় দিন।";
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: systemInstruction + "\nUser: " + prompt }] }]
+                })
+            });
+            const data = await response.json();
+            const aiText = data.candidates[0].content.parts[0].text;
+            responseBox.innerText = aiText;
+            statusText.innerText = "কথা বলছে...";
+            speak(aiText);
+        } catch (error) {
+            responseBox.innerText = "Error: এপিআই কাজ করছে না। হয়তো ক্রেডিট শেষ বা ইন্টারনেটে সমস্যা।";
+            statusText.innerText = "দুঃখিত!";
+        }
+    }
+
+    function speak(text) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'bn-BD';
+        utterance.onend = () => statusText.innerText = "বাটন চেপে আবার কথা বলুন";
+        window.speechSynthesis.speak(utterance);
+    }
+</script>
+</body>
+</html>
